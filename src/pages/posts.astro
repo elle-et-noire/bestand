@@ -1,0 +1,11 @@
+---
+import Layout from "../layouts/Layout.astro";
+import PostList from "../components/PostList.astro";
+
+// `/posts` でも同じ記事一覧を描画する（Next 版の予約スラッグ相当）。トップ `/` は
+// ここへリダイレクトせず、`/` のまま一覧を出す（src/pages/index.astro）。
+---
+
+<Layout>
+  <PostList />
+</Layout>

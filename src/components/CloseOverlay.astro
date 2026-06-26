@@ -1,0 +1,16 @@
+---
+/**
+ * 記事の背後に敷くグラスモーフィズム背景。モーダル枠の外側＝背景模様が透けて見える
+ * 領域をクリックすると、記事を閉じてトップ（一覧）へ戻る。視覚上の閉じる手段は
+ * CloseButton（×）が担うので aria-hidden（スクリーンリーダーには読み上げさせない）。
+ */
+const base = import.meta.env.BASE_URL;
+---
+
+<a
+  href={base}
+  aria-hidden="true"
+  tabindex="-1"
+  class="block z-10 fixed top-0 left-0 right-0 size-full bg-[#1f1b1c]/15 dark:bg-[#001533]/30 backdrop-blur-[3px] cursor-pointer"
+>
+</a>

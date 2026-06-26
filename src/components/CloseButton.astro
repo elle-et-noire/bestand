@@ -1,0 +1,16 @@
+---
+/**
+ * 記事を閉じて記事一覧（トップ `/`）へ戻るボタン。Next 版では output:export の癖を
+ * 避けるため `/posts` へ SPA 遷移していたが、Astro は MPA なのでトップ `/` への
+ * 通常のリンクで戻る（一覧は `/` のまま）。
+ */
+const base = import.meta.env.BASE_URL;
+---
+
+<a
+  href={base}
+  aria-label="記事を閉じて一覧へ戻る"
+  class="visible flex size-11 items-center justify-center -m-1.5"
+>
+  <div class="batsu" aria-hidden></div>
+</a>

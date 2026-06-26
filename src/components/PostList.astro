@@ -1,0 +1,28 @@
+---
+import { GetAllPosts } from "../../lib/post";
+import PostCard from "./PostCard.astro";
+
+/**
+ * 記事一覧。トップ（`/`）で描画する（Next 版と異なり `/posts` へはリダイレクトせず、
+ * URL は `/` のまま）。
+ */
+const posts = GetAllPosts();
+---
+
+<section aria-labelledby="post-list-heading" class="m-0">
+  <h1 id="post-list-heading" class="sr-only">記事一覧</h1>
+  {/* 一覧ページ専用の集中スクリム。中央列に向けて背景の目玉模様をゆるく暗転させ、
+      カードへ視線を集める。ぼかしは使わずクリックも透過させる。 */}
+  <div
+    aria-hidden
+    class="pointer-events-none fixed inset-0 -z-10 bg-[radial-gradient(ellipse_46%_64%_at_50%_42%,rgba(31,27,28,0.55),rgba(31,27,28,0)_72%)] dark:bg-[radial-gradient(ellipse_46%_64%_at_50%_42%,rgba(2,5,10,0.62),rgba(2,5,10,0)_72%)]"
+  >
+  </div>
+  {/* 上・左から行方向に詰めていく（Zenn の一覧風）。1→2→3 列にレスポンシブ。
+      auto-rows-fr と各カードの h-full で全カードの高さを揃える。 */}
+  <div
+    class="mx-auto w-full max-w-[64rem] px-5 sm:px-8 pt-20 pb-16 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr gap-4 sm:gap-5"
+  >
+    {posts.map((post) => <PostCard slug={post.slug} data={post.data} />)}
+  </div>
+</section>

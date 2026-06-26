@@ -1,0 +1,160 @@
+---
+import Layout from "../layouts/Layout.astro";
+import { GetAllSlugs, GetPostBySlug } from "../../lib/post";
+import { markdownToHtml } from "../../lib/convert";
+import { getHeadings } from "../../lib/toc";
+import { MATH_FONT_PRELOAD_HREF } from "../../lib/mathjax";
+import DateInfo from "../components/DateInfo.astro";
+import Toc from "../components/Toc.astro";
+import CloseButton from "../components/CloseButton.astro";
+import CloseOverlay from "../components/CloseOverlay.astro";
+import CloseSeal from "../components/CloseSeal.astro";
+
+export async function getStaticPaths() {
+  return GetAllSlugs().map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+const { content, data } = GetPostBySlug(slug!);
+const { html, css } = await markdownToHtml(content || "");
+const headings = getHeadings(content || "");
+---
+
+<Layout title={data.title}>
+  {/* 数式のある記事だけ主フォントを先読みし、抽出した CHTML スタイルを <head> へ。 */}
+  {
+    css && (
+      <Fragment slot="head">
+        <link
+          rel="preload"
+          as="font"
+          type="font/woff2"
+          href={MATH_FONT_PRELOAD_HREF}
+          crossorigin="anonymous"
+        />
+        <style is:inline set:html={css} />
+      </Fragment>
+    )
+  }
+
+  {/* グラスモーフィズム背景。透けて見える領域のクリックで記事を閉じる。 */}
+  <CloseOverlay />
+
+  <div
+    class="z-20 relative flex flex-col mx-auto mt-8 px-4 md:pl-16 md:pr-4 pb-16 w-[22rem] sm:w-[40rem] md:w-[68rem] rounded-lg bg-[#f5f0e6] shadow-[0_0px_4px_0px_rgba(31,27,28,0.45)] prose max-w-none transition-colors duration-500 dark:bg-[#0b1422] dark:shadow-[0_0px_3px_0px_rgba(0,0,0,0.6)] dark:prose-invert"
+  >
+    {/* 上端：封蝋の下半分／下端：封蝋の上半分。どちらもクリックで記事を閉じる。 */}
+    <CloseSeal position="top" />
+    <CloseSeal position="bottom" />
+    <div class="invisible flex justify-end z-30 sticky top-0 pt-4">
+      <CloseButton />
+    </div>
+    <div class="grid grid-flow-col justify-stretch">
+      <div
+        class="w-[20rem] sm:w-[38rem] md:w-[48rem] font-zen-maru-gothic-medium overflow-x-visible"
+      >
+        <h1
+          class="mb-1 md:mb-3 text-lg sm:text-3xl md:text-4xl dark:text-[#cbd9ea]"
+        >
+          {data.title}
+        </h1>
+        <DateInfo data={data} class="text-xs sm:text-base" />
+        <div class="post" set:html={html} />
+      </div>
+      <div class="hidden md:block w-full md:w-[12rem] pl-4">
+        <Toc headings={headings} />
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script>
+  // --- コードブロック右上の Zenn 風コピーボタン（Next 版 component/codecopy.tsx 相当） ---
+  const COPY_ICON =
+    '<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+  const CHECK_ICON =
+    '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+
+  const extractCode = (figure: Element): string => {
+    const lines = figure.querySelectorAll("pre code [data-line]");
+    if (lines.length > 0) return Array.from(lines, (l) => l.textContent ?? "").join("\n");
+    const pre = figure.querySelector("pre");
+    return (pre as HTMLElement | null)?.innerText ?? "";
+  };
+
+  document
+    .querySelectorAll(".post figure[data-rehype-pretty-code-figure]")
+    .forEach((figure) => {
+      if (figure.querySelector(".code-copy-button")) return;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "code-copy-button";
+      button.setAttribute("aria-label", "コードをコピー");
+      button.innerHTML =
+        COPY_ICON + CHECK_ICON + '<span class="code-copy-tooltip" role="status">Copied!</span>';
+      figure.appendChild(button);
+    });
+
+  const timers = new WeakMap<Element, number>();
+  document.addEventListener("click", (event) => {
+    const target = event.target as Element | null;
+    const button = target?.closest<HTMLButtonElement>(".code-copy-button");
+    if (!button) return;
+    const figure = button.closest("figure");
+    if (!figure) return;
+    if (event.detail !== 0) button.blur();
+
+    const finish = () => {
+      button.setAttribute("data-copied", "true");
+      const prev = timers.get(button);
+      if (prev) window.clearTimeout(prev);
+      timers.set(
+        button,
+        window.setTimeout(() => button.removeAttribute("data-copied"), 2000),
+      );
+    };
+
+    const text = extractCode(figure);
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(text).then(finish, () => {});
+    } else {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        finish();
+      } catch {}
+      document.body.removeChild(ta);
+    }
+  });
+
+  // rehype-pretty-code は <pre> に tabindex を付ける。ポインタ由来のフォーカスだけ解除する。
+  document.addEventListener("pointerup", (event) => {
+    const target = event.target as Element | null;
+    const pre = target?.closest(".post pre");
+    if (pre && document.activeElement === pre) (pre as HTMLElement).blur();
+  });
+
+  // --- \eqref（式番号の相互参照）リンクをスムーズスクロールに（Next 版 mathref.tsx 相当） ---
+  document.addEventListener("click", (event) => {
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
+      return;
+    const target = event.target as Element | null;
+    const link = target?.closest<HTMLAnchorElement>('.post a[href^="#mjx-eqn"]');
+    if (!link) return;
+    const hash = link.hash;
+    if (!hash) return;
+    const id = decodeURIComponent(hash.slice(1));
+    const el = document.getElementById(id);
+    if (!el) return;
+    event.preventDefault();
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+    history.replaceState(null, "", hash);
+    if (event.detail > 0) link.blur();
+  });
+</script>

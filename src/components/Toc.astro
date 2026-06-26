@@ -1,0 +1,98 @@
+---
+import type { Heading } from "../../lib/toc";
+
+interface Props {
+  headings: Heading[];
+}
+const { headings } = Astro.props;
+---
+
+{
+  headings.length > 0 && (
+    <nav
+      aria-label="目次"
+      data-toc
+      class="styled-scrollbar sticky top-4 max-h-[calc(100svh-2rem)] overflow-y-auto font-zen-maru-gothic-medium"
+    >
+      <ul class="toc-list">
+        {headings.map((h) => (
+          <li class={`toc-list-item toc-level-${h.level}`} data-toc-id={h.id}>
+            <a href={`#${h.id}`} class="toc-link">
+              {h.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<script>
+  // 目次のアクティブ強調・スムーズスクロール・nav 内追従。Next 版 component/toc.tsx の
+  // useEffect 群を素の DOM 操作へ移植したもの。
+  const nav = document.querySelector<HTMLElement>("[data-toc]");
+  if (nav) {
+    const items = Array.from(nav.querySelectorAll<HTMLLIElement>("[data-toc-id]"));
+    const ids = items.map((li) => li.dataset.tocId!).filter(Boolean);
+    const itemById = new Map(items.map((li) => [li.dataset.tocId!, li]));
+    const visible: Record<string, boolean> = {};
+    let activeId = ids[0] ?? "";
+
+    const setActive = (id: string) => {
+      if (!id || id === activeId) return;
+      itemById.get(activeId)?.classList.remove("is-active-li");
+      activeId = id;
+      const li = itemById.get(id);
+      li?.classList.add("is-active-li");
+      // 本体スクロールでアクティブ項目が変わったら、その項目が nav の表示範囲に入るよう
+      // nav 内だけをスクロールする（ページ全体は動かさない）。
+      if (li) {
+        const navRect = nav.getBoundingClientRect();
+        const liRect = li.getBoundingClientRect();
+        const margin = 16;
+        let delta = 0;
+        if (liRect.top < navRect.top + margin) delta = liRect.top - navRect.top - margin;
+        else if (liRect.bottom > navRect.bottom - margin) delta = liRect.bottom - navRect.bottom + margin;
+        if (delta !== 0) {
+          const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          nav.scrollBy({ top: delta, behavior: reduceMotion ? "auto" : "smooth" });
+        }
+      }
+    };
+
+    // 初期アクティブ
+    itemById.get(activeId)?.classList.add("is-active-li");
+
+    const elements = ids
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (elements.length > 0) {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) visible[entry.target.id] = entry.isIntersecting;
+          // ビューポート上部のバンド内にある最初（＝最上部）の見出しを採用。
+          const current = ids.find((id) => visible[id]);
+          if (current) setActive(current);
+        },
+        { rootMargin: "0px 0px -66% 0px", threshold: 0 },
+      );
+      elements.forEach((el) => observer.observe(el));
+    }
+
+    // クリックでスムーズスクロール。
+    nav.querySelectorAll<HTMLAnchorElement>("a.toc-link").forEach((link) => {
+      link.addEventListener("click", (e) => {
+        const id = decodeURIComponent((link.getAttribute("href") || "").slice(1));
+        const el = document.getElementById(id);
+        if (!el) return;
+        e.preventDefault();
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        el.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+        history.replaceState(null, "", `#${id}`);
+        setActive(id);
+        if (e.detail > 0) link.blur();
+      });
+    });
+  }
+</script>

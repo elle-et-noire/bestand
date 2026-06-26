@@ -1,0 +1,61 @@
+---
+// テーマ切り替えボタン。背景（BackgroundPattern）は両テーマ分を出力済みで、
+// <html> の dark/light クラスに応じて CSS が出し分ける。このボタンはそのクラスを
+// トグルし、選択を localStorage に永続化する。アイコンは両方出力しておき、現在の
+// テーマに応じて CSS（globals.css の data-theme ルール）で出し分ける。
+---
+
+<button
+  type="button"
+  data-theme-toggle
+  aria-label="テーマを切り替え"
+  class="group fixed top-5 left-5 z-50 flex items-center justify-center size-12 bg-[#faf6ec]/90 text-gray-500 rounded-full shadow-md backdrop-blur-md transition-colors hover:text-[#90332f] dark:bg-slate-900/90 dark:text-cyan-400/60 dark:hover:text-cyan-400"
+>
+  {/* 太陽：ダークモード時のみ表示（クリックでライトへ） */}
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    shape-rendering="geometricPrecision"
+    class="size-6 hidden dark:block"
+  >
+    <path
+      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+    ></path>
+  </svg>
+  {/* 月：ライトモード時のみ表示（クリックでダークへ） */}
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    shape-rendering="geometricPrecision"
+    class="size-6 block dark:hidden"
+  >
+    <path
+      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+    ></path>
+  </svg>
+</button>
+
+<script>
+  const button = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+  button?.addEventListener("click", (event) => {
+    const root = document.documentElement;
+    const next = !root.classList.contains("dark");
+    // <html> の dark/light クラスをトグルする。Tailwind の dark: variant、
+    // globals.css の html.dark ルール、背景の data-theme 出し分けがこれに反応する。
+    root.classList.toggle("dark", next);
+    root.classList.toggle("light", !next);
+    try {
+      localStorage.setItem("theme", next ? "dark" : "light");
+    } catch {}
+    // マウス／タッチでの起動（detail!==0）なら、クリック後にフォーカスを外す。
+    if (event.detail !== 0) button.blur();
+  });
+</script>
