@@ -22,3 +22,6 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# cached upstream font sources for subsetting (not committed)
+scripts/.fontsrc/

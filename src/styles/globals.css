@@ -6,6 +6,26 @@
    既定の prefers-color-scheme ベースを上書きする。 */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* 本文・コードフォントは Google Fonts ではなく自前ホスト（同一オリジン）の woff2 を使う。
+   scripts/generate-fonts.mjs が、サイトで実際に使う文字だけにサブセットして
+   public/fonts/ へ出力する（本文 約109KB / コード 約11KB）。これで第三者 CDN への
+   レンダリングブロッキングなラウンドトリップが無くなる。
+   パスは base（astro.config.mjs の '/bestand'）込みの絶対パスで固定する。 */
+@font-face {
+  font-family: "Zen Maru Gothic";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/bestand/fonts/zen-maru-gothic-medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Fira Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/bestand/fonts/fira-mono-regular.woff2") format("woff2");
+}
+
 @theme {
   --font-zen-maru-gothic-medium: var(--font-zmg-medium);
   --font-mono: Consolas, var(--font-fira-mono);
@@ -45,8 +65,7 @@
   --icon-width: 4px;
   --icon-color: black;
 
-  /* Next 版では next/font/google が <html> に注入していたフォント変数。
-     Astro では Google Fonts を <link> で読み込み、ここでファミリー名を割り当てる。
+  /* 本文・コードのフォントファミリー。実体は上の @font-face（自前ホストの woff2）。
      冒頭の @theme がこれらを参照する。 */
   --font-zmg-medium: "Zen Maru Gothic", sans-serif;
   --font-fira-mono: "Fira Mono", monospace;

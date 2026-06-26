@@ -17,17 +17,21 @@ const {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.ico`} />
+    <link rel="icon" href={`${import.meta.env.BASE_URL}/favicon.ico`} />
+    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}/favicon.svg`} />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
 
-    {/* 本文＝Zen Maru Gothic medium、コード＝Fira Mono。 */}
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    {/* 本文＝Zen Maru Gothic medium、コード＝Fira Mono。どちらも自前ホスト（同一オリジン）の
+        サブセット woff2（globals.css の @font-face）。本文フォントは全ページで最初に必要なので
+        preload して、CSS 解析を待たずに転送を始める。 */}
     <link
-      rel="stylesheet"
-      href="https://fonts.googleapis.com/css2?family=Fira+Mono&family=Zen+Maru+Gothic:wght@500&display=swap"
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href={`${import.meta.env.BASE_URL}/fonts/zen-maru-gothic-medium.woff2`}
+      crossorigin="anonymous"
     />
 
     {/* 数式フォント (woff2) は @font-face 経由でこの CDN から読み込むため、接続を事前確立。 */}
