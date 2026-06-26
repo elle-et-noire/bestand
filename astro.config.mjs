@@ -6,6 +6,8 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   site: 'https://elle-et-noire.github.io',
   base: '/bestand',
+  // data-astro-prefetch を付けたリンクだけを先読みする（全リンクの自動 prefetch はしない）。
+  prefetch: true,
   vite: {
     plugins: [tailwindcss()],
     // 数式はビルド時に mathjax の node 版で CHTML へ組版する（lib/mathjax.ts）。
