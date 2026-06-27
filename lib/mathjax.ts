@@ -3,7 +3,8 @@
 // plan.md の方針: 数式はビルド時に完全に HTML/CSS へ変換し、ブラウザ側では
 // MathJax の JavaScript を一切実行しない（クライアント JS 0KB）。CHTML が必要と
 // する CSS は実際に使われたグリフのぶんだけ（adaptiveCSS）抽出してページに
-// インライン化し、Web フォント (woff2) は @font-face 経由で CDN から読み込む。
+// インライン化し、Web フォント (woff2) は @font-face 経由で同一オリジン（自前ホスト）
+// から読み込む（scripts/copy-math-fonts.mjs が public/fonts/mjx/ に用意する）。
 //
 // 記事内の数式は 1 つの MathJax ドキュメントとしてまとめて組版する。これにより
 // \label / \eqref による式番号の連番と相互参照（前方参照を含む）が記事全体で
@@ -32,9 +33,13 @@ const MATHJAX_ROOT = join(process.cwd(), "node_modules", "mathjax");
 // （@mathjax/%%FONT%%-font）経由でビルド時に @mathjax/mathjax-tex-font が require される
 // （next.config の serverExternalPackages で外部化）。
 //
-// CDN 上の同フォントパッケージ。@font-face の src がこのパスを指す。末尾に /chtml/woff2 を
-// 補って各 woff2 を参照する（例: mjx-tex-n.woff2）。
-const FONT_URL = "https://cdn.jsdelivr.net/npm/@mathjax/mathjax-tex-font@4/chtml/woff2";
+// 数式フォントは自前ホスト（同一オリジン）で配信する。scripts/copy-math-fonts.mjs が
+// @mathjax/mathjax-tex-font の woff2 を public/fonts/mjx/ へコピーし（predev/prebuild）、
+// @font-face の src がこのパスを指す。各 woff2 はこの直下に置かれる（例: mjx-tex-n.woff2）。
+// base（astro.config.mjs の '/bestand'）込みの絶対パスにするため BASE_URL を前置する。
+// 以前は第三者 CDN（jsdelivr）を指していたが、本文・コードフォントと同じく同一オリジンに
+// 寄せて DNS+TLS+コネクション確立のラウンドトリップを無くす。
+const FONT_URL = `${import.meta.env.BASE_URL}/fonts/mjx`;
 
 // 数式ページで <head> から先読みする主フォント。mjx-tex-n.woff2 は全数式ページ共通で
 // フォント総量の約 9 割を占める最大ファイル（約 161KB）。これ 1 本を preload して、
@@ -107,9 +112,9 @@ const config = {
     // globals.css の `.post mjx-utext` 側で行う（ビルド時は実フォント幅を測れないため）。
     mtextFont: "inherit",
     scale: 1.0,
-    // @font-face の src を CDN のフォントパッケージへ向ける（ブラウザは JS 無しで
-    // CSS 経由のみ woff2 を読み込む）。グリフのメトリクスはビルド時にローカルの
-    // フォントパッケージから読まれるため、ここはブラウザ向けの URL のみを指す。
+    // @font-face の src を自前ホストのフォントディレクトリ（同一オリジン）へ向ける
+    // （ブラウザは JS 無しで CSS 経由のみ woff2 を読み込む）。グリフのメトリクスは
+    // ビルド時にローカルの node_modules から読まれるため、ここはブラウザ向けの URL のみを指す。
     fontURL: FONT_URL,
   },
   // ビルド時に手動で組版するので、読み込み時の自動 typeset は不要。

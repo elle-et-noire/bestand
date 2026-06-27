@@ -25,3 +25,6 @@ pnpm-debug.log*
 
 # cached upstream font sources for subsetting (not committed)
 scripts/.fontsrc/
+
+# MathJax CHTML fonts copied from node_modules at prebuild (not committed)
+public/fonts/mjx/

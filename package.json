@@ -8,9 +8,10 @@
   "scripts": {
     "generate:bg": "node scripts/generate-bg.mjs",
     "generate:fonts": "node scripts/generate-fonts.mjs",
-    "predev": "node scripts/generate-bg.mjs",
+    "copy:math-fonts": "node scripts/copy-math-fonts.mjs",
+    "predev": "node scripts/generate-bg.mjs && node scripts/copy-math-fonts.mjs",
     "dev": "astro dev",
-    "prebuild": "node scripts/generate-bg.mjs",
+    "prebuild": "node scripts/generate-bg.mjs && node scripts/copy-math-fonts.mjs",
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro"

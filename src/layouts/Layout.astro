@@ -34,13 +34,6 @@ const {
       crossorigin="anonymous"
     />
 
-    {/* 数式フォント (woff2) は @font-face 経由でこの CDN から読み込むため、接続を事前確立。 */}
-    <link
-      rel="preconnect"
-      href="https://cdn.jsdelivr.net"
-      crossorigin="anonymous"
-    />
-
     {/* テーマの初期適用（FOUC 防止）。body 描画前に同期実行し、保存値→OS 設定の順で
         <html> に dark/light クラスを付ける。 */}
     <script is:inline>
