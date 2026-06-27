@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from "astro:transitions";
 import "../styles/globals.css";
 import BackgroundPattern from "../components/BackgroundPattern.astro";
 
@@ -13,7 +14,7 @@ const {
 ---
 
 <!doctype html>
-<html lang="ja" class="antialiased">
+<html lang="ja" class="antialiased" transition:animate="none">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -22,6 +23,10 @@ const {
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
+
+    {/* ページ遷移をクライアントサイドルーティングにする。これでフルページロードが消え、
+        タブ・favicon・再読み込みボタンのちらつきがなくなる。 */}
+    <ClientRouter />
 
     {/* 本文＝Zen Maru Gothic medium、コード＝Fira Mono。どちらも自前ホスト（同一オリジン）の
         サブセット woff2（globals.css の @font-face）。本文フォントは全ページで最初に必要なので
@@ -35,18 +40,24 @@ const {
     />
 
     {/* テーマの初期適用（FOUC 防止）。body 描画前に同期実行し、保存値→OS 設定の順で
-        <html> に dark/light クラスを付ける。 */}
+        <html> に dark/light クラスを付ける。ClientRouter のページ遷移では <html> の
+        class が遷移先（dark/light 未設定）の内容で上書きされるため、astro:after-swap でも
+        再適用してテーマが一瞬戻るのを防ぐ。 */}
     <script is:inline>
       (function () {
-        try {
-          var t = localStorage.getItem("theme");
-          var d = t
-            ? t === "dark"
-            : matchMedia("(prefers-color-scheme: dark)").matches;
-          var c = document.documentElement.classList;
-          c.toggle("dark", d);
-          c.toggle("light", !d);
-        } catch (e) {}
+        function applyTheme() {
+          try {
+            var t = localStorage.getItem("theme");
+            var d = t
+              ? t === "dark"
+              : matchMedia("(prefers-color-scheme: dark)").matches;
+            var c = document.documentElement.classList;
+            c.toggle("dark", d);
+            c.toggle("light", !d);
+          } catch (e) {}
+        }
+        applyTheme();
+        document.addEventListener("astro:after-swap", applyTheme);
       })();
     </script>
 

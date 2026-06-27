@@ -44,18 +44,22 @@
 </button>
 
 <script>
-  const button = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
-  button?.addEventListener("click", (event) => {
-    const root = document.documentElement;
-    const next = !root.classList.contains("dark");
-    // <html> の dark/light クラスをトグルする。Tailwind の dark: variant、
-    // globals.css の html.dark ルール、背景の data-theme 出し分けがこれに反応する。
-    root.classList.toggle("dark", next);
-    root.classList.toggle("light", !next);
-    try {
-      localStorage.setItem("theme", next ? "dark" : "light");
-    } catch {}
-    // マウス／タッチでの起動（detail!==0）なら、クリック後にフォーカスを外す。
-    if (event.detail !== 0) button.blur();
+  // ボタンはページ遷移ごとに作り直されるので、astro:page-load（初回ロードでも発火）で
+  // 毎回その時点のボタンへリスナーを張り直す。
+  document.addEventListener("astro:page-load", () => {
+    const button = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+    button?.addEventListener("click", (event) => {
+      const root = document.documentElement;
+      const next = !root.classList.contains("dark");
+      // <html> の dark/light クラスをトグルする。Tailwind の dark: variant、
+      // globals.css の html.dark ルール、背景の data-theme 出し分けがこれに反応する。
+      root.classList.toggle("dark", next);
+      root.classList.toggle("light", !next);
+      try {
+        localStorage.setItem("theme", next ? "dark" : "light");
+      } catch {}
+      // マウス／タッチでの起動（detail!==0）なら、クリック後にフォーカスを外す。
+      if (event.detail !== 0) button.blur();
+    });
   });
 </script>

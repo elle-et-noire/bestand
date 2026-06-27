@@ -82,19 +82,26 @@ const headings = getHeadings(content || "");
     return (pre as HTMLElement | null)?.innerText ?? "";
   };
 
-  document
-    .querySelectorAll(".post figure[data-rehype-pretty-code-figure]")
-    .forEach((figure) => {
-      if (figure.querySelector(".code-copy-button")) return;
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "code-copy-button";
-      button.setAttribute("aria-label", "コードをコピー");
-      button.innerHTML =
-        COPY_ICON + CHECK_ICON + '<span class="code-copy-tooltip" role="status">Copied!</span>';
-      figure.appendChild(button);
-    });
+  // コピーボタンの差し込みは DOM 依存なので、初回ロードと毎回のクライアント遷移
+  // （astro:page-load）で実行する。既にボタンがある figure はスキップするので冪等。
+  const addCopyButtons = () => {
+    document
+      .querySelectorAll(".post figure[data-rehype-pretty-code-figure]")
+      .forEach((figure) => {
+        if (figure.querySelector(".code-copy-button")) return;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "code-copy-button";
+        button.setAttribute("aria-label", "コードをコピー");
+        button.innerHTML =
+          COPY_ICON + CHECK_ICON + '<span class="code-copy-tooltip" role="status">Copied!</span>';
+        figure.appendChild(button);
+      });
+  };
+  document.addEventListener("astro:page-load", addCopyButtons);
 
+  // 以下の click / pointerup は document への委譲リスナーなので、一度だけ登録すれば
+  // 遷移後の新しい DOM にもそのまま効く（page-load ごとに登録すると二重発火する）。
   const timers = new WeakMap<Element, number>();
   document.addEventListener("click", (event) => {
     const target = event.target as Element | null;

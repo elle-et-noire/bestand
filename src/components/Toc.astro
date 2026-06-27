@@ -30,6 +30,9 @@ const { headings } = Astro.props;
 <script>
   // 目次のアクティブ強調・スムーズスクロール・nav 内追従。Next 版 component/toc.tsx の
   // useEffect 群を素の DOM 操作へ移植したもの。
+  // nav・IntersectionObserver・リンクのリスナーはいずれもページごとの DOM に紐づくため、
+  // 初回ロードと毎回のクライアント遷移（astro:page-load）でその時点の DOM に対して張り直す。
+  document.addEventListener("astro:page-load", () => {
   const nav = document.querySelector<HTMLElement>("[data-toc]");
   if (nav) {
     const items = Array.from(nav.querySelectorAll<HTMLLIElement>("[data-toc-id]"));
@@ -95,4 +98,5 @@ const { headings } = Astro.props;
       });
     });
   }
+  });
 </script>
