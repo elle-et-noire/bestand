@@ -1,14 +1,14 @@
 ---
 import ThemeToggle from "./ThemeToggle.astro";
+import { withBase } from "../../lib/base";
 
 // 背景の「目玉」パターンは scripts/generate-bg.mjs がビルド前に
 // public/bg-retro.svg / public/bg-dark.svg として生成する（固定シードで決定論的）。
 // ここではそれらを CSS background-image として参照するだけ。data URI の
 // 全ページインライン（2 テーマで約 45KB／遷移ごとに再取得）をやめ、ブラウザの
 // キャッシュに載せて HTML 本体も軽くする。
-const base = import.meta.env.BASE_URL;
-const retroImage = `url('${base}/bg-retro.svg')`;
-const darkImage = `url('${base}/bg-dark.svg')`;
+const retroImage = `url('${withBase("bg-retro.svg")}')`;
+const darkImage = `url('${withBase("bg-dark.svg")}')`;
 ---
 
 {/* テーマ切り替えボタン */}

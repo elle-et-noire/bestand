@@ -2,6 +2,7 @@
 import { ClientRouter } from "astro:transitions";
 import "../styles/globals.css";
 import BackgroundPattern from "../components/BackgroundPattern.astro";
+import { withBase } from "../../lib/base";
 
 interface Props {
   title?: string;
@@ -18,8 +19,8 @@ const {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" href={`${import.meta.env.BASE_URL}/favicon.ico`} />
-    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}/favicon.svg`} />
+    <link rel="icon" href={withBase("favicon.ico")} />
+    <link rel="icon" type="image/svg+xml" href={withBase("favicon.svg")} />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
     <meta name="description" content={description} />
@@ -35,7 +36,7 @@ const {
       rel="preload"
       as="font"
       type="font/woff2"
-      href={`${import.meta.env.BASE_URL}/fonts/zen-maru-gothic-medium.woff2`}
+      href={withBase("fonts/zen-maru-gothic-medium.woff2")}
       crossorigin="anonymous"
     />
 

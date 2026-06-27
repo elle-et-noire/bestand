@@ -1,14 +1,15 @@
 ---
 import DateInfo from "./DateInfo.astro";
 import Seal from "./Seal.astro";
+import { withBase } from "../../lib/base";
+import type { PostFrontmatter } from "../../lib/post";
 
 interface Props {
   slug: string;
-  data: { [key: string]: any };
+  data: PostFrontmatter;
 }
 const { slug, data } = Astro.props;
-const base = import.meta.env.BASE_URL;
-const href = `${base}${base.endsWith("/") ? "" : "/"}${slug}/`;
+const href = withBase(`${slug}/`);
 ---
 
 <a

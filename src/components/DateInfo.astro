@@ -1,8 +1,9 @@
 ---
 import { cn } from "../../lib/cn";
+import type { PostFrontmatter } from "../../lib/post";
 
 interface Props {
-  data: { [key: string]: any };
+  data: PostFrontmatter;
   class?: string;
 }
 const { data, class: className = "" } = Astro.props;

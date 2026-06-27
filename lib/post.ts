@@ -4,6 +4,15 @@ import matter from "gray-matter";
 
 const postPath = path.join(process.cwd(), "post");
 
+// 記事のフロントマター（post/*.md 冒頭の YAML）。title と publish は必須、
+// lastUpdate は任意。それ以外のキーが将来増えても許容する。
+export type PostFrontmatter = {
+  title: string;
+  publish: string;
+  lastUpdate?: string;
+  [key: string]: unknown;
+};
+
 export function GetAllSlugs() {
   return readdirSync(postPath)
     .filter((path) => /\.md?$/.test(path))
@@ -16,7 +25,7 @@ export function GetPostBySlug(slug: string) {
   const { content, data } = matter(markdown);
   return {
     content,
-    data,
+    data: data as PostFrontmatter,
   };
 }
 

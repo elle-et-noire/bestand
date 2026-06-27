@@ -4,11 +4,11 @@
  * 避けるため `/posts` へ SPA 遷移していたが、Astro は MPA なのでトップ `/` への
  * 通常のリンクで戻る（一覧は `/` のまま）。
  */
-const base = import.meta.env.BASE_URL;
+import { withBase } from "../../lib/base";
 ---
 
 <a
-  href={base}
+  href={withBase()}
   data-astro-prefetch="hover"
   aria-label="記事を閉じて一覧へ戻る"
   class="visible flex size-11 items-center justify-center -m-1.5"

@@ -13,6 +13,8 @@
 import { createRequire } from "node:module";
 import { join } from "node:path";
 
+import { withBase } from "./base";
+
 // mathjax の node 版 API は CommonJS（node-main.cjs）で型定義も無いため、
 // Next/Turbopack のバンドル対象から外して（next.config の serverExternalPackages）
 // 実行時に node_modules から require する。
@@ -39,7 +41,7 @@ const MATHJAX_ROOT = join(process.cwd(), "node_modules", "mathjax");
 // base（astro.config.mjs の '/bestand'）込みの絶対パスにするため BASE_URL を前置する。
 // 以前は第三者 CDN（jsdelivr）を指していたが、本文・コードフォントと同じく同一オリジンに
 // 寄せて DNS+TLS+コネクション確立のラウンドトリップを無くす。
-const FONT_URL = `${import.meta.env.BASE_URL}/fonts/mjx`;
+const FONT_URL = withBase("fonts/mjx");
 
 // 数式ページで <head> から先読みする主フォント。mjx-tex-n.woff2 は全数式ページ共通で
 // フォント総量の約 9 割を占める最大ファイル（約 161KB）。これ 1 本を preload して、
