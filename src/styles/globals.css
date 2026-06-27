@@ -395,6 +395,19 @@ html.dark .post pre::-webkit-scrollbar-thumb:hover {
   text-autospace: normal;
 }
 
+/* TBT 対策：数式の多い記事は CHTML が 1 グリフ 1 要素を吐くため本文 DOM が数万ノードに
+   なり、初回ロードのスタイル計算・レイアウトが長いメインスレッドタスクになる。
+   本文直下のブロック（段落・見出し・数式・コード figure 等、行内数式もその段落ごと）に
+   content-visibility:auto を付け、画面外ブロックの初期レイアウト／描画をブラウザにスキップ
+   させて TBT を削る。contain-intrinsic-size の auto キーワードで一度描画した実寸を記憶させ、
+   目次・\eqref のアンカースクロール時の位置ずれ（CLS）を抑える。fallback 値は未描画ブロックの
+   見積り高さ（実寸が分かれば上書きされる）なので、平均的なブロック高さに合わせた近似値。
+   非対応ブラウザはこの 2 宣言を無視するだけで、表示は従来どおり。 */
+.post > * {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 320px;
+}
+
 /* 平文・行内数式（currentColor 追従の SVG）の色をダークモードで反転。
    .post が prose の内側で色を固定してしまうため、ここで上書きする。 */
 html.dark .post {
