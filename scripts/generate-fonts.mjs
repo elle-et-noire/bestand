@@ -41,7 +41,7 @@ const corpus =
   readAllText(join(root, "post"), [".md"]) +
   readAllText(join(root, "src"), [".astro", ".ts"]) +
   // レイアウト既定のタイトル等、念のための定数。
-  "Dispositif";
+  "Bestand";
 
 const chars = [...new Set(corpus)].filter((c) => c >= " ").sort().join("");
 
