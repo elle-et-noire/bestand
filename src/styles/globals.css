@@ -472,6 +472,12 @@ html.dark .post h3 {
   @apply mx-auto;
 }
 
+/* width/height 属性（src の #w_h 記法から lib/convert.ts が付与）を持つ画像が
+   max-width で縮んでも、属性由来のアスペクト比を保ったまま高さが追従するようにする。 */
+.post img {
+  height: auto;
+}
+
 .post img:has(+.img-caption) {
   @apply mb-0;
 }

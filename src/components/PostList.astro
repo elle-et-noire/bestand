@@ -1,12 +1,12 @@
 ---
-import { GetAllPosts } from "../../lib/post";
+import { getAllPosts } from "@lib/post";
 import PostCard from "./PostCard.astro";
 
 /**
  * 記事一覧。トップ（`/`）で描画する（Next 版と異なり `/posts` へはリダイレクトせず、
  * URL は `/` のまま）。
  */
-const posts = GetAllPosts();
+const posts = getAllPosts();
 ---
 
 <section aria-labelledby="post-list-heading" class="m-0">

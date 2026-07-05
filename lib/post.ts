@@ -13,13 +13,13 @@ export type PostFrontmatter = {
   [key: string]: unknown;
 };
 
-export function GetAllSlugs() {
+export function getAllSlugs() {
   return readdirSync(postPath)
-    .filter((path) => /\.md?$/.test(path))
-    .map((path) => path.replace(/\.md?$/, ""));
+    .filter((file) => /\.md$/.test(file))
+    .map((file) => file.replace(/\.md$/, ""));
 }
 
-export function GetPostBySlug(slug: string) {
+export function getPostBySlug(slug: string) {
   const markdown = readFileSync(path.join(postPath, `${slug}.md`), "utf8");
 
   const { content, data } = matter(markdown);
@@ -29,13 +29,13 @@ export function GetPostBySlug(slug: string) {
   };
 }
 
-export function GetAllPosts() {
-  const slugs = GetAllSlugs();
-  const posts = slugs.map((slug) => ({ slug, ...GetPostBySlug(slug) }));
+export function getAllPosts() {
+  const slugs = getAllSlugs();
+  const posts = slugs.map((slug) => ({ slug, ...getPostBySlug(slug) }));
 
-  // sort by date
-  return posts.sort((a, b) =>
-    (new Date(b.data.publish)).getTime()
-    - (new Date(a.data.publish).getTime())
+  // 公開日の降順（新しい記事が先頭）
+  return posts.sort(
+    (a, b) =>
+      new Date(b.data.publish).getTime() - new Date(a.data.publish).getTime(),
   );
 }

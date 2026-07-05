@@ -1,8 +1,8 @@
 ---
 import DateInfo from "./DateInfo.astro";
 import Seal from "./Seal.astro";
-import { withBase } from "../../lib/base";
-import type { PostFrontmatter } from "../../lib/post";
+import { withBase } from "@lib/base";
+import type { PostFrontmatter } from "@lib/post";
 
 interface Props {
   slug: string;
@@ -14,6 +14,7 @@ const href = withBase(`${slug}/`);
 
 <a
   href={href}
+  data-astro-prefetch="hover"
   class="group relative flex h-full min-h-[10rem] flex-col overflow-hidden no-underline rounded-lg border transition-colors duration-200 border-[#cdbfa3] bg-[#ece5d3] shadow-[0_5px_16px_-5px_rgba(0,0,0,0.55)] dark:border-[#1d4170] dark:bg-[#11294d] dark:shadow-[0_5px_16px_-5px_rgba(0,0,0,0.75)]"
 >
   {/* 封筒のフラップ（折り返した蓋）。下端の破線が「折り目＝ここを開ける」を示し、

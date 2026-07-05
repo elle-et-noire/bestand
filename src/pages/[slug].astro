@@ -1,23 +1,27 @@
 ---
-import Layout from "../layouts/Layout.astro";
-import { GetAllSlugs, GetPostBySlug } from "../../lib/post";
-import { markdownToHtml } from "../../lib/convert";
-import { getHeadings } from "../../lib/toc";
-import { MATH_FONT_PRELOAD_HREF } from "../../lib/mathjax";
-import DateInfo from "../components/DateInfo.astro";
-import Toc from "../components/Toc.astro";
-import CloseButton from "../components/CloseButton.astro";
-import CloseOverlay from "../components/CloseOverlay.astro";
-import CloseSeal from "../components/CloseSeal.astro";
+import Layout from "@layouts/Layout.astro";
+import { getAllSlugs, getPostBySlug } from "@lib/post";
+import { markdownToHtml } from "@lib/convert";
+import { getHeadings } from "@lib/toc";
+import { MATH_FONT_PRELOAD_HREF } from "@lib/mathjax";
+import DateInfo from "@components/DateInfo.astro";
+import Toc from "@components/Toc.astro";
+import CloseButton from "@components/CloseButton.astro";
+import CloseOverlay from "@components/CloseOverlay.astro";
+import CloseSeal from "@components/CloseSeal.astro";
 
+// 記事の中身は getStaticPaths で読み、props としてページへ渡す（Astro のイディオム。
+// params から slug を取り直して再読込する必要がなく、非 null アサートも要らない）。
 export async function getStaticPaths() {
-  return GetAllSlugs().map((slug) => ({ params: { slug } }));
+  return getAllSlugs().map((slug) => ({
+    params: { slug },
+    props: getPostBySlug(slug),
+  }));
 }
 
-const { slug } = Astro.params;
-const { content, data } = GetPostBySlug(slug!);
-const { html, css } = await markdownToHtml(content || "");
-const headings = getHeadings(content || "");
+const { content, data } = Astro.props;
+const { html, css } = await markdownToHtml(content);
+const headings = getHeadings(content);
 ---
 
 <Layout title={data.title}>
