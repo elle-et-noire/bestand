@@ -9,6 +9,7 @@ import Toc from "@components/Toc.astro";
 import CloseButton from "@components/CloseButton.astro";
 import CloseOverlay from "@components/CloseOverlay.astro";
 import CloseSeal from "@components/CloseSeal.astro";
+import ArticleInteractions from "@components/ArticleInteractions.astro";
 
 // 記事の中身は getStaticPaths で読み、props としてページへ渡す（Astro のイディオム。
 // params から slug を取り直して再読込する必要がなく、非 null アサートも要らない）。
@@ -70,114 +71,5 @@ const headings = getHeadings(content);
       </div>
     </div>
   </div>
+  <ArticleInteractions />
 </Layout>
-
-<script>
-  // --- コードブロック右上の Zenn 風コピーボタン（Next 版 component/codecopy.tsx 相当） ---
-  const COPY_ICON =
-    '<svg class="copy-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
-  const CHECK_ICON =
-    '<svg class="check-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"></polyline></svg>';
-
-  const extractCode = (figure: Element): string => {
-    const lines = figure.querySelectorAll("pre code [data-line]");
-    if (lines.length > 0) return Array.from(lines, (l) => l.textContent ?? "").join("\n");
-    const pre = figure.querySelector("pre");
-    return (pre as HTMLElement | null)?.innerText ?? "";
-  };
-
-  // コピーボタンの差し込みは DOM 依存なので、初回ロードと毎回のクライアント遷移
-  // （astro:page-load）で実行する。既にボタンがある figure はスキップするので冪等。
-  const addCopyButtons = () => {
-    document
-      .querySelectorAll(".post figure[data-rehype-pretty-code-figure]")
-      .forEach((figure) => {
-        if (figure.querySelector(".code-copy-button")) return;
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "code-copy-button";
-        button.setAttribute("aria-label", "コードをコピー");
-        button.innerHTML =
-          COPY_ICON + CHECK_ICON + '<span class="code-copy-tooltip" role="status">Copied!</span>';
-        figure.appendChild(button);
-      });
-  };
-  document.addEventListener("astro:page-load", addCopyButtons);
-
-  // 以下の click / pointerup は document への委譲リスナーなので、一度だけ登録すれば
-  // 遷移後の新しい DOM にもそのまま効く（page-load ごとに登録すると二重発火する）。
-  const timers = new WeakMap<Element, number>();
-  document.addEventListener("click", (event) => {
-    const target = event.target as Element | null;
-    const button = target?.closest<HTMLButtonElement>(".code-copy-button");
-    if (!button) return;
-    const figure = button.closest("figure");
-    if (!figure) return;
-    if (event.detail !== 0) button.blur();
-
-    const finish = () => {
-      button.setAttribute("data-copied", "true");
-      const prev = timers.get(button);
-      if (prev) window.clearTimeout(prev);
-      timers.set(
-        button,
-        window.setTimeout(() => button.removeAttribute("data-copied"), 2000),
-      );
-    };
-
-    const text = extractCode(figure);
-    if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).then(finish, () => {});
-    } else {
-      const ta = document.createElement("textarea");
-      ta.value = text;
-      ta.style.position = "fixed";
-      ta.style.opacity = "0";
-      document.body.appendChild(ta);
-      ta.select();
-      try {
-        document.execCommand("copy");
-        finish();
-      } catch {}
-      document.body.removeChild(ta);
-    }
-  });
-
-  // rehype-pretty-code は <pre> に tabindex を付ける。ポインタ由来のフォーカスだけ解除する。
-  document.addEventListener("pointerup", (event) => {
-    const target = event.target as Element | null;
-    const pre = target?.closest(".post pre");
-    if (pre && document.activeElement === pre) (pre as HTMLElement).blur();
-  });
-
-  // --- \eqref（式番号の相互参照）リンクをスムーズスクロールに（Next 版 mathref.tsx 相当） ---
-  // 目次（Toc.astro）のページ内リンクと同じく astro:page-load で各リンクへ直接張る。
-  // クライアント遷移では本文 DOM ごと差し替わり、script 本体（最上位）は再実行されない
-  // ため、document への 1 回きりの委譲登録だと「一覧 → 記事」の SPA 遷移で張り直しが
-  // 効かず、既定のジャンプ（瞬間移動）のまま smooth スクロールが効かないことがある。
-  // 遷移のたびに発火する page-load でその時点のリンクへ張れば、目次と同じ挙動になる
-  // （本文は差し替え済みで毎回新しいリンクなので、data 属性ガードで二重登録だけ防ぐ）。
-  const bindMathRefs = () => {
-    document
-      .querySelectorAll<HTMLAnchorElement>('.post a[href^="#mjx-eqn"]')
-      .forEach((link) => {
-        if (link.dataset.mathrefBound) return;
-        link.dataset.mathrefBound = "true";
-        link.addEventListener("click", (event) => {
-          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)
-            return;
-          const hash = link.hash;
-          if (!hash) return;
-          const id = decodeURIComponent(hash.slice(1));
-          const el = document.getElementById(id);
-          if (!el) return;
-          event.preventDefault();
-          const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-          el.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
-          history.replaceState(null, "", hash);
-          if (event.detail > 0) link.blur();
-        });
-      });
-  };
-  document.addEventListener("astro:page-load", bindMathRefs);
-</script>

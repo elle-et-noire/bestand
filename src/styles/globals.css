@@ -16,14 +16,14 @@
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url("/bestand/fonts/zen-maru-gothic-medium.woff2") format("woff2");
+  src: url("/fonts/zen-maru-gothic-medium.woff2") format("woff2");
 }
 @font-face {
   font-family: "Fira Mono";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/bestand/fonts/fira-mono-regular.woff2") format("woff2");
+  src: url("/fonts/fira-mono-regular.woff2") format("woff2");
 }
 
 @theme {

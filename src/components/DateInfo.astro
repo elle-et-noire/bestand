@@ -1,5 +1,4 @@
 ---
-import { cn } from "@lib/cn";
 import type { PostFrontmatter } from "@lib/post";
 
 interface Props {
@@ -14,10 +13,10 @@ const lastUpdate = data.lastUpdate ? toDateString(data.lastUpdate) : null;
 ---
 
 <div
-  class={cn(
+  class:list={[
     "flex justify-start font-zen-maru-gothic-medium font-[400] text-[#6f6152] dark:text-[#8aa0bb] italic",
     className,
-  )}
+  ]}
 >
   <span class="pr-1">投稿日</span>{publish}
   {
