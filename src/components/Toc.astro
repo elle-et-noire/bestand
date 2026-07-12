@@ -14,7 +14,7 @@ const { headings, variant = "desktop" } = Astro.props;
     <nav
       aria-label="目次"
       data-toc
-      class="styled-scrollbar sticky top-4 max-h-[calc(100svh-2rem)] overflow-y-auto font-zen-maru-gothic-medium"
+      class="styled-scrollbar sticky top-4 max-h-[calc(100svh-2rem)] overflow-y-auto font-zen-maru-gothic-medium font-medium"
     >
       <TocList headings={headings} />
     </nav>
@@ -26,7 +26,11 @@ const { headings, variant = "desktop" } = Astro.props;
       <summary class="cursor-pointer select-none font-zen-maru-gothic-medium text-sm font-bold text-[#6f6152] dark:text-[#9db8d6]">
         目次
       </summary>
-      <nav aria-label="目次" data-toc class="mt-2 max-h-[55svh] overflow-y-auto font-zen-maru-gothic-medium">
+      <nav
+        aria-label="目次"
+        data-toc
+        class="styled-scrollbar mt-2 max-h-[55svh] overflow-y-auto font-zen-maru-gothic-medium font-medium"
+      >
         <TocList headings={headings} />
       </nav>
     </details>
