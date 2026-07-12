@@ -8,7 +8,8 @@
 <button
   type="button"
   data-theme-toggle
-  aria-label="テーマを切り替え"
+  aria-label="ダークモードに切り替え"
+  title="ダークモードに切り替え"
   class="group fixed top-5 left-5 z-50 flex items-center justify-center size-12 bg-[#faf6ec] text-[#90332f] rounded-full shadow-md backdrop-blur-md transition-colors hover:text-[#c0392b] dark:bg-slate-900 dark:text-cyan-400/60 dark:hover:text-cyan-400"
 >
   {/* 太陽：ダークモード時のみ表示（クリックでライトへ） */}
@@ -48,6 +49,15 @@
   // 毎回その時点のボタンへリスナーを張り直す。
   document.addEventListener("astro:page-load", () => {
     const button = document.querySelector<HTMLButtonElement>("[data-theme-toggle]");
+    const updateLabel = () => {
+      if (!button) return;
+      const label = document.documentElement.classList.contains("dark")
+        ? "ライトモードに切り替え"
+        : "ダークモードに切り替え";
+      button.setAttribute("aria-label", label);
+      button.title = label;
+    };
+    updateLabel();
     button?.addEventListener("click", (event) => {
       const root = document.documentElement;
       const next = !root.classList.contains("dark");
@@ -58,6 +68,7 @@
       try {
         localStorage.setItem("theme", next ? "dark" : "light");
       } catch {}
+      updateLabel();
       // マウス／タッチでの起動（detail!==0）なら、クリック後にフォーカスを外す。
       if (event.detail !== 0) button.blur();
     });

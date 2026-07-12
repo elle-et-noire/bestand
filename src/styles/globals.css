@@ -408,6 +408,12 @@ html.dark .post pre::-webkit-scrollbar-thumb:hover {
   contain-intrinsic-size: auto 320px;
 }
 
+/* 目次から移動するときは画面外ブロックも実寸で配置し、推定高からの変化による
+   初回スクロールの位置ずれを防ぐ。移動完了後は content-visibility:auto に戻る。 */
+.post.is-toc-scrolling > * {
+  content-visibility: visible;
+}
+
 /* 平文・行内数式（currentColor 追従の SVG）の色をダークモードで反転。
    .post が prose の内側で色を固定してしまうため、ここで上書きする。 */
 html.dark .post {

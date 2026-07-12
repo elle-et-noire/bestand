@@ -46,7 +46,7 @@ const headings = getHeadings(content);
   <CloseOverlay />
 
   <div
-    class="z-20 relative flex flex-col mx-auto mt-8 px-4 md:pl-16 md:pr-4 pb-16 w-[22rem] sm:w-[40rem] md:w-[68rem] rounded-lg bg-[#f5f0e6] shadow-[0_0px_4px_0px_rgba(31,27,28,0.45)] prose max-w-none transition-colors duration-500 dark:bg-[#0b1422] dark:shadow-[0_0px_3px_0px_rgba(0,0,0,0.6)] dark:prose-invert"
+    class="z-20 relative flex flex-col mx-auto mt-8 px-4 md:pl-16 md:pr-4 pb-16 w-[calc(100%-2rem)] max-w-[68rem] rounded-lg bg-[#f5f0e6] shadow-[0_0px_4px_0px_rgba(31,27,28,0.45)] prose transition-colors duration-500 dark:bg-[#0b1422] dark:shadow-[0_0px_3px_0px_rgba(0,0,0,0.6)] dark:prose-invert"
   >
     {/* 上端：封蝋の下半分／下端：封蝋の上半分。どちらもクリックで記事を閉じる。 */}
     <CloseSeal position="top" />
@@ -54,16 +54,15 @@ const headings = getHeadings(content);
     <div class="invisible flex justify-end z-30 sticky top-0 pt-4">
       <CloseButton />
     </div>
-    <div class="grid grid-flow-col justify-stretch">
-      <div
-        class="w-[20rem] sm:w-[38rem] md:w-[48rem] font-zen-maru-gothic-medium overflow-x-visible"
-      >
+    <div class="grid min-w-0 grid-cols-1 md:grid-cols-[minmax(0,1fr)_12rem]">
+      <div class="min-w-0 font-zen-maru-gothic-medium overflow-x-visible">
         <h1
           class="mb-1 md:mb-3 text-lg sm:text-3xl md:text-4xl dark:text-[#cbd9ea]"
         >
           {data.title}
         </h1>
         <DateInfo data={data} class="text-xs sm:text-base" />
+        <Toc headings={headings} variant="mobile" />
         <div class="post" set:html={html} />
       </div>
       <div class="hidden md:block w-full md:w-[12rem] pl-4">

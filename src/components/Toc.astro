@@ -1,29 +1,35 @@
 ---
 import type { Heading } from "@lib/toc";
+import TocList from "./TocList.astro";
 
 interface Props {
   headings: Heading[];
+  variant?: "desktop" | "mobile";
 }
-const { headings } = Astro.props;
+const { headings, variant = "desktop" } = Astro.props;
 ---
 
 {
-  headings.length > 0 && (
+  headings.length > 0 && variant === "desktop" && (
     <nav
       aria-label="目次"
       data-toc
       class="styled-scrollbar sticky top-4 max-h-[calc(100svh-2rem)] overflow-y-auto font-zen-maru-gothic-medium"
     >
-      <ul class="toc-list">
-        {headings.map((h) => (
-          <li class={`toc-list-item toc-level-${h.level}`} data-toc-id={h.id}>
-            <a href={`#${h.id}`} class="toc-link">
-              {h.text}
-            </a>
-          </li>
-        ))}
-      </ul>
+      <TocList headings={headings} />
     </nav>
+  )
+}
+{
+  headings.length > 0 && variant === "mobile" && (
+    <details class="not-prose my-5 rounded-md border border-[#d8cdb5] bg-[#eee7d7] px-3 py-2 md:hidden dark:border-[#2c4a73] dark:bg-[#101f35]">
+      <summary class="cursor-pointer select-none font-zen-maru-gothic-medium text-sm font-bold text-[#6f6152] dark:text-[#9db8d6]">
+        目次
+      </summary>
+      <nav aria-label="目次" data-toc class="mt-2 max-h-[55svh] overflow-y-auto font-zen-maru-gothic-medium">
+        <TocList headings={headings} />
+      </nav>
+    </details>
   )
 }
 
@@ -33,8 +39,52 @@ const { headings } = Astro.props;
   // nav・IntersectionObserver・リンクのリスナーはいずれもページごとの DOM に紐づくため、
   // 初回ロードと毎回のクライアント遷移（astro:page-load）でその時点の DOM に対して張り直す。
   document.addEventListener("astro:page-load", () => {
-  const nav = document.querySelector<HTMLElement>("[data-toc]");
-  if (nav) {
+  let scrollAnimation = 0;
+  let scrollingArticle: HTMLElement | null = null;
+
+  const scrollToHeading = (el: HTMLElement, reduceMotion: boolean) => {
+    cancelAnimationFrame(scrollAnimation);
+    scrollingArticle?.classList.remove("is-toc-scrolling");
+
+    // content-visibility:auto の推定高が実寸へ変わる途中で目的位置がずれないよう、
+    // スクロール中だけ本文全体のレイアウトを確定させる。
+    scrollingArticle = el.closest<HTMLElement>(".post");
+    scrollingArticle?.classList.add("is-toc-scrolling");
+
+    const scrollMarginTop = Number.parseFloat(getComputedStyle(el).scrollMarginTop) || 0;
+    const start = window.scrollY;
+    const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+    const target = Math.min(Math.max(start + el.getBoundingClientRect().top - scrollMarginTop, 0), maxScroll);
+
+    if (reduceMotion) {
+      window.scrollTo({ top: target, behavior: "auto" });
+      scrollingArticle?.classList.remove("is-toc-scrolling");
+      scrollingArticle = null;
+      return;
+    }
+
+    const distance = target - start;
+    // 距離に応じて少しだけ時間を延ばしつつ、遠い見出しでも待たせすぎない。
+    const duration = Math.min(500, Math.max(180, Math.abs(distance) / 8));
+    const startedAt = performance.now();
+
+    const tick = (now: number) => {
+      const progress = Math.min((now - startedAt) / duration, 1);
+      // ease-out cubic: 加速を待たず、開始直後が最も速い。
+      const eased = 1 - (1 - progress) ** 3;
+      window.scrollTo(0, start + distance * eased);
+      if (progress < 1) {
+        scrollAnimation = requestAnimationFrame(tick);
+      } else {
+        scrollingArticle?.classList.remove("is-toc-scrolling");
+        scrollingArticle = null;
+      }
+    };
+
+    scrollAnimation = requestAnimationFrame(tick);
+  };
+
+  document.querySelectorAll<HTMLElement>("[data-toc]").forEach((nav) => {
     const items = Array.from(nav.querySelectorAll<HTMLLIElement>("[data-toc-id]"));
     const ids = items.map((li) => li.dataset.tocId!).filter(Boolean);
     const itemById = new Map(items.map((li) => [li.dataset.tocId!, li]));
@@ -91,12 +141,12 @@ const { headings } = Astro.props;
         if (!el) return;
         e.preventDefault();
         const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        el.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+        scrollToHeading(el, reduceMotion);
         history.replaceState(null, "", `#${id}`);
         setActive(id);
         if (e.detail > 0) link.blur();
       });
     });
-  }
+  });
   });
 </script>

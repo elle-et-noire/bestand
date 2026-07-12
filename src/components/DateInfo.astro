@@ -14,17 +14,14 @@ const lastUpdate = data.lastUpdate ? toDateString(data.lastUpdate) : null;
 
 <div
   class:list={[
-    "flex justify-start font-zen-maru-gothic-medium font-[400] text-[#6f6152] dark:text-[#8aa0bb] italic",
+    "flex flex-wrap gap-x-2 gap-y-1 justify-start font-zen-maru-gothic-medium font-medium text-[#6f6152] dark:text-[#8aa0bb] italic",
     className,
   ]}
 >
-  <span class="pr-1">投稿日</span>{publish}
+  <span class="inline-flex whitespace-nowrap"><span class="pr-1">投稿日</span>{publish}</span>
   {
     lastUpdate && (
-      <>
-        <span class="pl-2 pr-1">» 最終更新日</span>
-        {lastUpdate}
-      </>
+      <span class="inline-flex whitespace-nowrap"><span class="pr-1">» 最終更新日</span>{lastUpdate}</span>
     )
   }
 </div>
